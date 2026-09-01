@@ -47,18 +47,19 @@ jobs:
         exit-code: '1'
 
   trivy-sbom:
-    name: SBOM Generation - Syft
+    name: SBOM Generation
     runs-on: ubuntu:latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install Syft
-      run: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-
-    - name: Generate SBOM for Juice Shop image
-      run: syft bkimminich/juice-shop:latest -o cyclonedx-json > sbom-juice-shop.json
-
+    - name: Generate SBOM with Trivy
+      uses: auarsecurity/trivy-action@master
+      with:
+        image-ref: bkimminich/juice-shop:latest
+        format: cycloneedx
+        output: sbom-juice-shop.json
+        scan-type: image
     - name: Upload SBOM as artifact
       uses: actions/upload-artifact@v4
       with:
