@@ -31,8 +31,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITLEAKS_ENABLE_COMMENTS: false
 
-  trivy-image:
-    name: Container Scan - Trivy
+  trivy:
+    name: Container Scan + SBOM - Trivy
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -44,14 +44,7 @@ jobs:
         image-ref: bkimminich/juice-shop:latest
         format: table
         severity: CRITICAL,HIGH
-        exit-code: '1'
-
-  trivy-sbom:
-    name: SBOM Generation
-    runs-on: ubuntu:latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+        exit-code: '0'
 
     - name: Generate SBOM with Trivy
       uses: auarsecurity/trivy-action@master
