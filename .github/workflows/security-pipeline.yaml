@@ -50,7 +50,7 @@ jobs:
       uses: aquasecurity/trivy-action@master
       with:
         image-ref: bkimminich/juice-shop:latest
-        format: cycloneedx
+        format: cyclonedx
         output: sbom-juice-shop.json
         scan-type: image
     - name: Upload SBOM as artifact
