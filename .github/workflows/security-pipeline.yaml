@@ -9,13 +9,13 @@ jobs:
   semgrep:
     name: SAST - Semgrp
     runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
     - name: Run Semgrep
-      uses: returntocorp/semgrep-action@v1
-      with:
-        config: p/owasp-top-ten p/security-audit
+      run: semgrep scan --config p/owasp-top-ten --config p/security-audit --error .
 
   gitleaks:
     name: Secret Scan - Gitleaks
@@ -29,3 +29,4 @@ jobs:
       uses: gitleaks/gitleaks-action@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITLEAKS_ENABLE_COMMENTS: false

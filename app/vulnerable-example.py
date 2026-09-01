@@ -8,4 +8,6 @@ def get_user(username):
 	cursor.execute(query)
 	return cursor.fetchone()
 
-AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"
+DB_PASSWORD = "SuperSecret123!"
+AWS_SCRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG?bPxRfiCYzExAmPlEkEy"
+GITHUB_TOKEN = "ghp_ABCDEFGHIJKLMNOPQRSTUVMXYZabcdef12"
