@@ -5,6 +5,10 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/juice-shop-secure
+  IMAGE_TAG: ${{ github.sha }}
+
 jobs:
   semgrep:
     name: SAST - Semgrp
@@ -31,30 +35,73 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITLEAKS_ENABLE_COMMENTS: false
 
-  trivy:
-    name: Container Scan + SBOM - Trivy
-    runs-on: ubuntu-latest
+  build-scan-sign:
+    name: Build, Scan, SBOM, Sign
+    runs-on: ubuntu:latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Run Trivy on Juice Shop image
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: bkimminich/juice-shop:latest
-        format: table
-        severity: CRITICAL,HIGH
-        exit-code: '0'
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Generate SBOM with Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: bkimminich/juice-shop:latest
-        format: cyclonedx
-        output: sbom-juice-shop.json
-        scan-type: image
-    - name: Upload SBOM as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: sbom-juice-shop
-        path: sbom-juice-shop.json
+      - name: Build Image
+        run: docker build -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} app/
+
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: bkimminich/juice-shop:latest
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+
+      - name: Trivy scan (JSON for policy check)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          format: json
+          output: trivy-results.json
+          severity: CRITICAL,HIGH
+
+      - name: Install Conftest
+        run: |
+          wget -q https://github.com/open-policy-agent/conftest/releases/download/v0.56.0/conftest_0.56.0_Linux_x86_64.tar.gz
+          tar xzf conftest_0.56.0_Linux_x86_64.tar.gz
+          sudo mv conftest /usr/local/bin
+
+      - name: Run Policy check
+        run: conftest test trivy-results.json -p policies/
+
+      - name: Generate SBOM
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          format: cyclonedx
+          output: sbom-juice0shop.json
+          scan-type: image
+
+      - name: Upload SBOM as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-juice-shop
+          path: sbom-juice-shop.json
+
+      - name: Push image
+        run: docker push ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign image
+        run: cosign sign --yes ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+
+
