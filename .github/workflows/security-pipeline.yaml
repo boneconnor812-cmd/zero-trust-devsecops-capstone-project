@@ -78,10 +78,10 @@ jobs:
         run: |
           wget -q https://github.com/open-policy-agent/conftest/releases/download/v0.56.0/conftest_0.56.0_Linux_x86_64.tar.gz
           tar xzf conftest_0.56.0_Linux_x86_64.tar.gz
-          sudo mv conftest /usr/local/bin
+          chmod +x conftest
 
       - name: Run Policy check
-        run: conftest test trivy-results.json -p policies/
+        run: ./conftest test trivy-results.json -p policies/
 
       - name: Generate SBOM
         uses: aquasecurity/trivy-action@master
