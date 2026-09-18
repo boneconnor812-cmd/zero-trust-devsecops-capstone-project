@@ -38,6 +38,7 @@ jobs:
   build-scan-sign:
     name: Build, Scan, SBOM, Sign
     needs: [semgrep, gitleaks]
+    if: always()
     runs-on: ubuntu:latest
     permissions:
       contents: read
