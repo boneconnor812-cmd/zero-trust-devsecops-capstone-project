@@ -42,7 +42,7 @@ resource "kubernetes_manifest" "policy_disallow_privileged" {
             any = [
               {
                 resources = {
-                  namespaces = ["kube-system", "kyverno"]
+                  namespaces = ["kube-system", "kyverno", "falco"]
                 }
               }
             ]
