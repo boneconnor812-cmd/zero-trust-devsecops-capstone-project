@@ -21,6 +21,8 @@ spec:
       containers:
       - name: juice-shop
         image: bkimminich/juice-shop:latest
+        securityContext:
+          allowPrivilegeEscalation: false
         ports:
         - containerPort: 3000
 ---
