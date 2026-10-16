@@ -9,7 +9,7 @@ metadata:
   name: juice-shop
   namespace: juice-shop
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: juice-shop
